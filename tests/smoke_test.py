@@ -53,6 +53,21 @@ check("email date has no year or weekday", render_invite("{date}", "x", "A", dat
 page = render_invite_html("<p>{meet_link}</p>", "A", datetime(2026, 11, 20, 9, 30), 60, "https://meet.google.com/a?b=1&c=2")
 check("Meet link is a hyperlink in the HTML email", '<a href="https://meet.google.com/a?b=1&amp;c=2">' in page, page)
 
+# ---------------------------------------------------------------- designed invitation
+from tutoring_organiser import branded_email                                     # noqa: E402
+_start = datetime(2031, 3, 7, 16, 0)
+_page = branded_email.render_html("Mia <b>Thompson</b>", _start, 90, "https://meet.google.com/abc-defg-hij?x=1&y=2")
+_text = branded_email.render_plain("Mia Thompson", _start, 90, "https://meet.google.com/abc-defg-hij")
+check("designed email greets by first name, escaped", "Hi Mia," in _page and "<b>" not in _page)
+check("designed email shows date, time and length", all(s in _page for s in ("7 March", "4:00 pm", "1 hour 30 minutes")))
+check("designed email time has no (NZ)", "(NZ)" not in _page and "(NZ)" not in _text)
+check("designed email Meet link is escaped in the button", 'href="https://meet.google.com/abc-defg-hij?x=1&amp;y=2"' in _page)
+check("designed email images are cid attachments", f"cid:{branded_email.HEADER_CID}" in _page and f"cid:{branded_email.ICON_CID}" in _page)
+check("designed email image files are bundled", branded_email.assets_available())
+check("designed email plain text carries the Meet link", "https://meet.google.com/abc-defg-hij" in _text)
+check("designed email for today says Today", "Today" in branded_email.render_html("A", auckland_now().replace(hour=16, minute=0), 60, "https://m"))
+check("designed email without a Meet link says it's pending", "[Meet link pending]" in branded_email.render_html("A", _start, 60, ""))
+
 # ---------------------------------------------------------------- PDFs
 folder = TMP / "files" / "Alice"
 folder.mkdir(parents=True)
@@ -274,6 +289,19 @@ extra.write_bytes(b"%PDF y")
 win.assign_dropped_pdfs([str(extra), str(inbox / "random.pdf")])
 pump(app)
 check("drop shows a message, flags the unmatched file", "random.pdf" in win.toast.text() and win.toast.isVisible(), win.toast.text())
+
+# ---------------------------------------------------------------- designed invitation switch
+ip = win.invite_page
+was_on = ip.use_design.isChecked()
+ip.use_design.setChecked(True)
+pump(app)
+check("design switch on hides the message editor", ip.message.isHidden() and not ip.design_note.isHidden())
+ip.use_design.setChecked(False)
+pump(app)
+check("design switch off shows the message editor", not ip.message.isHidden() and ip.design_note.isHidden())
+check("design switch is remembered", store.setting("invite_branded") == "0")
+ip.use_design.setChecked(was_on)
+pump(app)
 
 # ---------------------------------------------------------------- updater + housekeeping
 check("updater compares versions", updater.is_newer("v1.2.0", "1.1.9") and not updater.is_newer("1.0.0", "1.0.0"))

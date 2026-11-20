@@ -19,6 +19,7 @@ tutoring_organiser/
   google_auth.py             Google sign-in, token files, readable Google error messages
   calendar_api.py            Google Calendar: create events + Meet links, two-way sync, delete
   invites.py                 invitation email templates, building the message, Gmail send
+  branded_email.py           the designed Croft Tutoring invitation (HTML + plain text, images in assets/email)
   updater.py                 checks GitHub Releases and installs updates
   app.py                     starts Qt and opens the window
   ui/
@@ -36,7 +37,7 @@ tutoring_organiser/
     invite_page.py           Invite page
     settings_page.py         Settings page
 tests/smoke_test.py          headless self-test, also run by the release workflow
-assets/icon.ico  assets/fonts/  tutoring_organiser.spec  installer.iss  build.ps1  rth_pyside6_dlls.py   (build)
+assets/icon.ico  assets/fonts/  assets/email/  tutoring_organiser.spec  installer.iss  build.ps1  rth_pyside6_dlls.py   (build)
 .github/workflows/release.yml                                                           (release)
 ```
 

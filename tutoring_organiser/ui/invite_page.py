@@ -68,9 +68,16 @@ from ..invites import (
     render_invite,
     render_invite_html,
 )
+from .. import branded_email
 from .jobs import Job
 from .theme import ACCENT, BAD, GOOD, MUTED
 from .widgets import SmartSplitter
+
+try:  # QtWebEngine shows the designed email exactly as it will arrive; without it a simpler preview is used.
+    from PySide6.QtWebEngineWidgets import QWebEngineView
+    HAVE_WEBENGINE = True
+except ImportError:
+    HAVE_WEBENGINE = False
 
 
 class InvitePage(QWidget):
@@ -137,10 +144,16 @@ class InvitePage(QWidget):
         else:
             self.message.setPlainText(self.store.setting("invite_message", DEFAULT_MESSAGE))
         self.message.setMinimumHeight(150)
+        self.use_design = QCheckBox("Use the Croft Tutoring email design")
+        self.use_design.setToolTip("Sends the designed invitation (plum header, date/time/length, Join button, "
+                                   "signature). Untick to write your own message below instead.")
+        self.use_design.setChecked(self.store.setting("invite_branded", "1") == "1")
+        self.use_design.toggled.connect(self.design_toggled)
         hint = QLabel("Placeholders: {first_name} {name} {date} {time} {duration} {meet_link} \u2013 filled in "
                       "when the event is created. You can still edit the final email before sending.")
         hint.setObjectName("muted")
         hint.setWordWrap(True)
+        self.message_hint = hint
 
         self.resume_label = QLabel()
         self.resume_label.setWordWrap(True)
@@ -183,12 +196,20 @@ class InvitePage(QWidget):
         ll.setSpacing(10)
         ll.addWidget(self.resume_row)
         ll.addLayout(form)
-        ll.addWidget(QLabel("Message"))
+        ll.addWidget(self.use_design)
+        self.message_label = QLabel("Message")
+        ll.addWidget(self.message_label)
         self.btn_embed_message = QPushButton("Embed image in this message…")
         self.btn_embed_message.clicked.connect(self.add_inline_message_image)
         ll.addWidget(self.btn_embed_message, 0, Qt.AlignLeft)
         ll.addWidget(self.message, 1)
         ll.addWidget(hint)
+        self.design_note = QLabel("The invitation uses the Croft Tutoring design. The preview on the right shows "
+                                  "exactly what the student will receive.")
+        self.design_note.setObjectName("muted")
+        self.design_note.setWordWrap(True)
+        ll.addWidget(self.design_note)
+        ll.addStretch(0)
         ll.addLayout(brow)
 
         # ---- right card: the email preview
@@ -246,6 +267,12 @@ class InvitePage(QWidget):
         grid.setColumnStretch(1, 1)
         self.p_body = QTextEdit()
         self.p_body.setMinimumHeight(150)
+        if HAVE_WEBENGINE:
+            self.p_design = QWebEngineView()
+        else:
+            self.p_design = QTextEdit()
+            self.p_design.setReadOnly(True)
+        self.p_design.setMinimumHeight(320)
         self.inline_images = {}
         self.btn_embed_img = QPushButton("Embed image…")
         self.btn_embed_img.clicked.connect(self.add_inline_image)
@@ -263,9 +290,11 @@ class InvitePage(QWidget):
         title.setObjectName("studentName")
         pl.addWidget(title)
         pl.addLayout(grid)
-        pl.addWidget(QLabel("Message (editable)"))
+        self.p_body_label = QLabel("Message (editable)")
+        pl.addWidget(self.p_body_label)
         pl.addWidget(self.btn_embed_img, 0, Qt.AlignLeft)
         pl.addWidget(self.p_body, 1)
+        pl.addWidget(self.p_design, 1)
         srow = QHBoxLayout()
         srow.addWidget(self.sent_label, 1)
         srow.addWidget(self.btn_send)
@@ -287,6 +316,7 @@ class InvitePage(QWidget):
         lay.addLayout(top)
         lay.addWidget(self.msg)
         lay.addWidget(split, 1)
+        self.design_toggled(self.use_design.isChecked(), save=False)
         self.update_google_status()
 
     # ---- helpers ---------------------------------------------------------
@@ -468,7 +498,7 @@ class InvitePage(QWidget):
     # ---- form <-> draft --------------------------------------------------
     def lock_form(self, locked):
         for w in (self.student, self.email, self.save_email, self.date, self.time, self.duration,
-                  self.subject, self.message):
+                  self.subject, self.message, self.use_design):
             w.setEnabled(not locked)
         self.btn_new.setVisible(locked)
         self.btn_find.setEnabled(not locked and not self.busy)
@@ -565,7 +595,7 @@ class InvitePage(QWidget):
                                        v["duration"], res["meet_url"])
         self.draft = {"lesson_id": lid, "event_id": res["event_id"], "sid": v["sid"], "name": v["name"],
                       "emails": v["emails"], "start": v["start"], "duration": v["duration"],
-                      "meet_url": res["meet_url"], "sent": False}
+                      "meet_url": res["meet_url"], "sent": False, "branded": self.use_design.isChecked()}
         self.lock_form(True)
         self.show_preview(subject, body, html_body, v["message_inline_images"])
         self.update_create_button()
@@ -603,6 +633,8 @@ class InvitePage(QWidget):
             cursor = self.p_body.document().find(MEET_PENDING)
         self.p_subject.setText(self.p_subject.text().replace(MEET_PENDING, res["meet_url"]))
         self.show_meet(res["meet_url"])
+        if d.get("branded"):
+            self.show_design_preview()
         self.update_create_button()
         self.say("Got the Meet link. Review the email, then send it.", "ok")
         self.notify()
@@ -626,7 +658,8 @@ class InvitePage(QWidget):
         html_body = render_invite_html(self.message.toHtml(), s["name"], start, row["duration"], row["meet_url"])
         self.draft = {"lesson_id": row["id"], "event_id": row["calendar_event_id"], "sid": s["id"],
                       "name": s["name"], "emails": emails, "start": start, "duration": row["duration"],
-                      "meet_url": row["meet_url"] or "", "sent": bool(row["invite_sent_at"])}
+                      "meet_url": row["meet_url"] or "", "sent": bool(row["invite_sent_at"]),
+                      "branded": self.use_design.isChecked()}
         self.lock_form(True)
         self.show_preview(subject, body, html_body, self.message_inline_images)
         self.update_create_button()
@@ -687,11 +720,33 @@ class InvitePage(QWidget):
         else:
             self.p_body.setPlainText(body)
         register_inline_image_resources(self.p_body, self.inline_images)
+        branded = bool(d.get("branded"))
+        for w in (self.p_body_label, self.btn_embed_img, self.p_body):
+            w.setVisible(not branded)
+        self.p_design.setVisible(branded)
+        if branded:
+            self.show_design_preview()
         self.show_attachments()
         self.sent_label.setText("Already sent once \u2013 you can send again." if d["sent"] else "")
         self.btn_send.setText("Resend Invitation Email" if d["sent"] else "Send Invitation Email")
         self.empty.hide()
         self.preview.show()
+
+    def design_toggled(self, on, save=True):
+        """Designed invitation on: the message editor isn't used, so hide it."""
+        if save:
+            self.store.set_setting("invite_branded", "1" if on else "0")
+        for w in (self.message_label, self.btn_embed_message, self.message, self.message_hint):
+            w.setVisible(not on)
+        self.design_note.setVisible(on)
+
+    def show_design_preview(self):
+        d = self.draft
+        page = branded_email.render_preview_html(d["name"], d["start"], d["duration"], d["meet_url"])
+        if HAVE_WEBENGINE:
+            self.p_design.setHtml(page, QUrl.fromLocalFile(str(branded_email.EMAIL_ASSETS) + "/"))
+        else:
+            self.p_design.setHtml(page)
 
     def load_defaults(self, schedule=True):
         """Fill the form from Settings. schedule=False leaves date/time/length alone."""
@@ -767,7 +822,16 @@ class InvitePage(QWidget):
         if self.busy or not d:
             return
         subject = self.p_subject.text().strip()
-        body = self.p_body.toPlainText().replace("\ufffc", "").strip()
+        branded = bool(d.get("branded"))
+        if branded:
+            if not branded_email.assets_available():
+                return QMessageBox.warning(self, "Email design files missing",
+                                           "The Croft Tutoring email images weren't found in the app folder. "
+                                           "Untick 'Use the Croft Tutoring email design' to send a plain message, "
+                                           "or reinstall the app.")
+            body = branded_email.render_plain(d["name"], d["start"], d["duration"], d["meet_url"])
+        else:
+            body = self.p_body.toPlainText().replace("\ufffc", "").strip()
         emails = parse_emails(self.p_to.text())
         if not d["meet_url"]:
             return QMessageBox.information(self, "No Meet link yet",
@@ -791,13 +855,20 @@ class InvitePage(QWidget):
         if not self.google_ready_to_run():
             return
         files = list(self.attachments)
+        if branded:
+            inline_images = branded_email.inline_images()
+            html_body = branded_email.render_html(d["name"], d["start"], d["duration"], d["meet_url"])
+        else:
+            inline_images = [(path, cid) for cid, path in self.inline_images.items()]
+            html_body = self.p_body.toHtml()
         try:
-            check_attachments(files + list(self.inline_images.values()))
+            check_attachments(files + [path for path, _ in inline_images])
         except GoogleError as e:
             return QMessageBox.warning(self, "Attachments", str(e))
         again = "\n\n(You already sent this invitation once.)" if d["sent"] else ""
         att = f"\nAttachments: {len(files)} image(s)" if files else ""
-        embed_note = f"\nEmbedded images: {len(self.inline_images)}" if self.inline_images else ""
+        embed_note = ("\nDesign: Croft Tutoring invitation" if branded else
+                      (f"\nEmbedded images: {len(self.inline_images)}" if self.inline_images else ""))
         if QMessageBox.question(self, "Send invitation email?",
                                 f"Send this email now?\n\nTo: {', '.join(emails)}\nSubject: {subject}"
                                 + att + embed_note + again) != QMessageBox.Yes:
@@ -808,8 +879,6 @@ class InvitePage(QWidget):
             if saved_email != (self.store.student(d["sid"])["email"] or ""):
                 self.store.set_student_email(d["sid"], saved_email)
         to = list(emails)
-        html_body = self.p_body.toHtml()
-        inline_images = [(path, cid) for cid, path in self.inline_images.items()]
 
         def work():
             return gmail_send(google_credentials(interactive=True), to, subject, body, files,

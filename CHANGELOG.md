@@ -4,6 +4,17 @@ The release workflow publishes the section for the new version as the GitHub Rel
 in-app updater shows those notes when it offers the update. Keep each section short and written for you
 as the user of the app.
 
+## 1.4.0
+
+- **Designed invitation email:** lesson invitations now go out in the Croft Tutoring design: plum header,
+  a box with the date, time and length, a *Join on Google Meet* button, your signature and a footer that
+  tells students to reply if they need to move the lesson. The time no longer says "(NZ)".
+- **Accurate preview:** the Invite page shows the designed email exactly as the student will receive it.
+- **Switch it off any time:** untick *Use the Croft Tutoring email design* on the Invite page to go back to
+  writing your own message. The choice is remembered.
+- Gmail and Outlook show the headings in Georgia rather than Roboto Slab (they don't load web fonts);
+  everything else looks the same.
+
 ## 1.3.0
 
 - **New look:** the app now uses the Croft Tutoring brand. Plum replaces the orange accent, the
