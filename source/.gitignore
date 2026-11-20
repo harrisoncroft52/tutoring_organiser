@@ -1,0 +1,15 @@
+# Personal data: never commit these (the repo is public)
+*.db
+*.db-journal
+google_credentials.json
+google_token.json
+client_secret*.json
+backups/
+
+# Build output
+build/
+dist/
+installer_output/
+.venv-build/
+__pycache__/
+*.pyc
