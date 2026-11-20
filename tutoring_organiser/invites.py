@@ -108,6 +108,18 @@ IMAGE_FILTER = "Images (*.png *.jpg *.jpeg *.gif *.webp)"
 MAX_ATTACH_BYTES = 15 * 1024 * 1024      # Gmail's limit is 25 MB for the whole message; base64 adds ~33%
 
 
+def embed_width(path, max_width=600):
+    """Display width (px) for an image embedded in an email. Images wider than 600 px are treated as 2x
+    (retina) graphics and shown at half size, so the 1200 px Croft Tutoring header shows at 600 px and
+    stays sharp. Smaller images show at their own size."""
+    w = QImage(str(path)).width()
+    if w <= 0:
+        return 360
+    if w > max_width:
+        w = w // 2
+    return min(w, max_width)
+
+
 def check_attachments(paths):
     """Raise GoogleError (with a readable message) if any attachment is missing, not an image, or too big."""
     total = 0

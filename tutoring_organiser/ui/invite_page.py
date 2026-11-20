@@ -57,6 +57,7 @@ from ..invites import (
     check_attachments,
     DEFAULT_MESSAGE,
     DEFAULT_SUBJECT,
+    embed_width,
     gmail_send,
     IMAGE_FILTER,
     inline_template_images,
@@ -718,7 +719,7 @@ class InvitePage(QWidget):
         self.message.document().addResource(QTextDocument.ImageResource, resource_url, QImage(path))
         image = QTextImageFormat()
         image.setName(resource_url.toString())
-        image.setWidth(360)
+        image.setWidth(embed_width(path))
         self.message.textCursor().insertImage(image)
         self.message_inline_images[content_id] = path
 
@@ -748,7 +749,7 @@ class InvitePage(QWidget):
         self.p_body.document().addResource(QTextDocument.ImageResource, resource_url, QImage(path))
         image = QTextImageFormat()
         image.setName(resource_url.toString())
-        image.setWidth(360)
+        image.setWidth(embed_width(path))
         self.p_body.textCursor().insertImage(image)
         self.inline_images[content_id] = path
 

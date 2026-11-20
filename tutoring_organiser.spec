@@ -2,7 +2,8 @@
 #   python -m PyInstaller --noconfirm --clean tutoring_organiser.spec
 from PyInstaller.utils.hooks import collect_all, collect_submodules
 
-datas = [("assets/icon.ico", "assets")]   # window/taskbar icon at run time (see config.ICON_PATH)
+datas = [("assets/icon.ico", "assets"),   # window/taskbar icon at run time (see config.ICON_PATH)
+         ("assets/fonts", "assets/fonts")]   # Roboto Slab headings (see config.FONT_DIR)
 binaries = []
 hiddenimports = []
 for package in ("googleapiclient", "google_auth_oauthlib", "google.auth"):

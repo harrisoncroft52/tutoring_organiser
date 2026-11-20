@@ -36,7 +36,7 @@ tutoring_organiser/
     invite_page.py           Invite page
     settings_page.py         Settings page
 tests/smoke_test.py          headless self-test, also run by the release workflow
-assets/icon.ico  tutoring_organiser.spec  installer.iss  build.ps1  rth_pyside6_dlls.py   (build)
+assets/icon.ico  assets/fonts/  tutoring_organiser.spec  installer.iss  build.ps1  rth_pyside6_dlls.py   (build)
 .github/workflows/release.yml                                                           (release)
 ```
 

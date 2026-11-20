@@ -187,7 +187,7 @@ class GraphDialog(QDialog):
         for axis in (self.ax, self.ay):
             axis.setLabelsColor(QColor(MUTED))
             axis.setLinePen(QPen(QColor(BORDER)))
-            axis.setGridLinePen(QPen(QColor("#EEEBDF")))
+            axis.setGridLinePen(QPen(QColor("#F1EBED")))
         self.chart.addAxis(self.ax, Qt.AlignBottom)
         self.chart.addAxis(self.ay, Qt.AlignLeft)
         self.view = QChartView(self.chart)

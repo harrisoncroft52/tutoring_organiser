@@ -10,7 +10,7 @@ from ..helpers import effective_status, invite_status, nice_dt
 from .theme import ACCENT, BAD, BORDER, MUTED, SURFACE, SURFACE_ALT, TEXT
 
 
-CAL_COLOURS = ["#C96442", "#5E7F4F", "#4F7A9A", "#9A6BA8", "#B8893B", "#3F8F8A", "#A8576B", "#7B7F3B"]
+CAL_COLOURS = ["#7A2E4F", "#4F7A5A", "#3F6E96", "#6B4C8A", "#A9792F", "#2F7F7A", "#5A6472", "#7B7F3B"]
 
 
 def student_colour(sid):
@@ -92,7 +92,7 @@ def paint_chip(p, rect, ev, lines, badges=False):
     elif state == "done":
         fill, fg = blend(col, QColor("white"), 0.8), QColor(TEXT)
     else:
-        fill, fg = QColor("#EEECE3"), QColor(MUTED)
+        fill, fg = QColor("#EFE9EB"), QColor(MUTED)
     p.save()
     p.setRenderHint(QPainter.Antialiasing)
     path = QPainterPath()
@@ -324,11 +324,11 @@ class WeekGrid(_HitMixin, QWidget):
         today = Date.today()
         for i, d in enumerate(self.days):                       # tint today's column
             if d == today:
-                p.fillRect(QRectF(self.GUTTER + i * cw, 0, cw, self.height()), QColor("#FCF6F2"))
+                p.fillRect(QRectF(self.GUTTER + i * cw, 0, cw, self.height()), QColor("#FBF4F6"))
         f = QFont(p.font()); f.setPixelSize(10); p.setFont(f)
         for h in range(24):
             y = h * self.HOUR_H
-            p.setPen(QColor("#EFEDE4"))
+            p.setPen(QColor("#F1EBED"))
             p.drawLine(self.GUTTER, y, self.width(), y)
             if h:
                 p.setPen(QColor(MUTED))
@@ -466,7 +466,7 @@ class MonthView(_HitMixin, QFrame):
                 p.setBrush(Qt.NoBrush)
                 p.setPen(QColor("white"))
             else:
-                p.setPen(QColor(TEXT if d.month == self.month else "#B9B5A3"))
+                p.setPen(QColor(TEXT if d.month == self.month else "#B5A9AF"))
             p.drawText(circle, Qt.AlignCenter, str(d.day))
             evs = self.by_day.get(d, [])
             avail = max(0, int((ch - 28) // (self.CHIP_H + 2)))

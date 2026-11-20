@@ -48,7 +48,8 @@ def pump(app, n=6, pause=0.0):
 today = auckland_now()
 subj, body = render_invite("S {date}", "Hi {date} {meet_link}", "Alice Smith", today.replace(hour=16, minute=0), 60, "https://meet.google.com/abc")
 check("email says 'today' for a lesson today", subj == "S today" and body.startswith("Hi today "), (subj, body))
-check("email date has no year or weekday", render_invite("{date}", "x", "A", datetime(2026, 11, 20, 9, 30), 60, "")[0] == "20 November")
+# A fixed date that can never be "today" (the old 20 Nov 2026 date failed on that day).
+check("email date has no year or weekday", render_invite("{date}", "x", "A", datetime(2031, 3, 7, 9, 30), 60, "")[0] == "7 March")
 page = render_invite_html("<p>{meet_link}</p>", "A", datetime(2026, 11, 20, 9, 30), 60, "https://meet.google.com/a?b=1&c=2")
 check("Meet link is a hyperlink in the HTML email", '<a href="https://meet.google.com/a?b=1&amp;c=2">' in page, page)
 

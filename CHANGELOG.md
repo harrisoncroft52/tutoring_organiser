@@ -4,6 +4,17 @@ The release workflow publishes the section for the new version as the GitHub Rel
 in-app updater shows those notes when it offers the update. Keep each section short and written for you
 as the user of the app.
 
+## 1.3.0
+
+- **New look:** the app now uses the Croft Tutoring brand. Plum replaces the orange accent, the
+  background is a warmer paper colour, and page headings use Roboto Slab (bundled with the app, so it
+  looks the same on any PC).
+- **New icon:** the window, taskbar and installer use the plum Croft Tutoring icon with the integral sign.
+- **Calendar colours:** students' lesson colours now start with plum and sit better alongside it.
+- **Embedded email images:** images embedded in an invitation now show at their real size (up to 600 px)
+  instead of always 360 px. Images wider than 600 px are treated as high-resolution and shown at half
+  size, so the new email header and signature from the Design folder stay sharp.
+
 ## 1.2.0
 
 - **App icon:** the Tutoring Organiser logo now shows in the window's title bar, the taskbar and every

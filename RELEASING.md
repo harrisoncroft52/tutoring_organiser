@@ -18,15 +18,15 @@ installer, and every installed copy of the app offers the update by itself.
 A push that doesn't change `version.py` does nothing. If you push a version that is already released, the
 workflow stops and says so. You can also run the workflow by hand from the Actions tab.
 
-## Publishing v1.2.0 from this folder
-Copy everything in this folder over your local clone of the repo (including the dotfiles `.gitignore` and
-`.github/`, and the new `CHANGELOG.md`), then commit and push to `main`:
+## Publishing v1.3.0 from this folder
+Copy everything in this folder over your local clone of the repo (including `.gitignore`, the new
+`assets/fonts/` folder and the new `assets/icon.ico`), then commit and push to `main`:
 ```
 git add -A
-git commit -m "Release 1.2.0"
+git commit -m "Release 1.3.0"
 git push
 ```
-`version.py` says 1.2.0, so the push publishes v1.2.0 and installed 1.1.0 apps offer the update.
+`version.py` says 1.3.0, so the push publishes v1.3.0 and installed 1.2.0 apps offer the update.
 
 ## Building locally instead
 `powershell -ExecutionPolicy Bypass -File build.ps1`, then upload the `.exe` and `.exe.sha256` from
